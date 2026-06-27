@@ -32,6 +32,20 @@ export class VideoExport {
 		await this.#FileSystemHelper.writeFile(handle, this.#Encoder.file!)
 	}
 
+	/** Получить экспортированный MP4 как Blob (для моста media-privacy). */
+	get_exported_blob(): Blob | null {
+		const f = this.#Encoder.file
+		if (!f) return null
+		return new Blob([f as any], {type: "video/mp4"})
+	}
+
+	/** Сохранить произвольный Blob на диск (результат media-privacy). */
+	async save_blob(blob: Blob) {
+		const handle = await this.#FileSystemHelper.getFileHandle()
+		const buf = new Uint8Array(await blob.arrayBuffer())
+		await this.#FileSystemHelper.writeFile(handle, buf)
+	}
+
 	resetExporter(state: State) {
 		this.#exporting = false
 		this.#timestamp = 0

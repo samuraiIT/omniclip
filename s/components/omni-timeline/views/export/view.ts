@@ -9,6 +9,7 @@ import {StateHandler} from "../../../../views/state-handler/view.js"
 import {collaboration, shadow_view} from "../../../../context/context.js"
 import circleInfoSvg from "../../../../icons/gravity-ui/circle-info.svg.js"
 import {confirmModalStyles, exportOverlayStyles, styles} from "./styles.js"
+import {mediaPrivacy} from "../../../../utils/media-privacy-client.js"
 
 export const Export = shadow_view(use => () => {
 	use.styles([styles, tooltipStyles])
@@ -228,6 +229,26 @@ export const ExportInProgressOverlay = shadow_view((use) => () => {
 						>
 							<sl-icon slot="prefix" name="download"></sl-icon>
 							Save Video
+						</sl-button>
+
+						<sl-button
+							variant="warning"
+							size="large"
+							?disabled=${state.export_status !== "complete"}
+							@click=${async () => {
+								const blob = videoExport.get_exported_blob()
+								if (!blob) return
+								try {
+									const redacted = await mediaPrivacy.redactVideo(blob, "inpaint")
+									await videoExport.save_blob(redacted)
+								} catch (e) {
+									console.error("media-privacy redact failed:", e)
+								}
+							}}
+							class="redact-button"
+						>
+							<sl-icon slot="prefix" name="shield-lock"></sl-icon>
+							Redact PII &amp; Save
 						</sl-button>
 					</div>
 				</div>
